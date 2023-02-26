@@ -1,6 +1,6 @@
 import { Model } from "./../types/Model";
 import { API } from "./../types/API";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { ApiEndpoints } from "./config/apiEndpoints";
 
 export default class ModelAPI implements API<Model> {
@@ -8,7 +8,7 @@ export default class ModelAPI implements API<Model> {
     return new Promise<Model[]>((resolve, reject) => {
       axios
         .get(ApiEndpoints.model)
-        .then((response: any) => {
+        .then((response: AxiosResponse<any, any>) => {
           return resolve(response.data);
         })
         .catch((error) => {
@@ -20,7 +20,19 @@ export default class ModelAPI implements API<Model> {
     return new Promise<Model>((resolve, reject) => {
       axios
         .get(ApiEndpoints.model + "/" + id)
-        .then((response: any) => {
+        .then((response: AxiosResponse<any, any>) => {
+          return resolve(response.data);
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+  getByBrand(brandId: number): Promise<Model[]> {
+    return new Promise<Model[]>((resolve, reject) => {
+      axios
+        .get(ApiEndpoints.model + "/getByBrand", { params: { brandId } })
+        .then((response: AxiosResponse<any, any>) => {
           return resolve(response.data);
         })
         .catch((error) => {
@@ -32,7 +44,7 @@ export default class ModelAPI implements API<Model> {
     return new Promise<boolean>((resolve, reject) => {
       axios
         .put(ApiEndpoints.model + "/" + data.id, data)
-        .then((response: any) => {
+        .then((response: AxiosResponse<any, any>) => {
           return resolve(response.data);
         })
         .catch((error) => {
@@ -44,7 +56,19 @@ export default class ModelAPI implements API<Model> {
     return new Promise<boolean>((resolve, reject) => {
       axios
         .delete(ApiEndpoints.model + "/" + id)
-        .then((response: any) => {
+        .then((response: AxiosResponse<any, any>) => {
+          return resolve(response.data);
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
+  add(data: Model): Promise<Model> {
+    return new Promise<Model>((resolve, reject) => {
+      axios
+        .post(ApiEndpoints.model, data)
+        .then((response: AxiosResponse<any, any>) => {
           return resolve(response.data);
         })
         .catch((error) => {

@@ -16,7 +16,7 @@ import Link from "@mui/material/Link";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import { mainListItems, secondaryListItems } from "../ListItems";
+import { MainListItems, secondaryListItems } from "../ListItems";
 import Deposits from "../Deposits";
 import Orders from "../Orders";
 import { AppBarProps } from "./types";
@@ -26,11 +26,15 @@ import { modelService } from "../../apis/ModelAPI";
 import { AppBar } from "./AppBar";
 import { Drawer } from "./Drawer";
 import { Brand } from "../../types/Brand";
+import { Model } from "../../types/Model";
+import DataTable from "../DataTable";
 
 const mdTheme = createTheme();
 
 function DashboardContent() {
   const [brands, setBrands] = React.useState<Brand[]>([]);
+  const [models, setModels] = React.useState<Model[]>([]);
+  const [selectedBrand, setSelectedBrand] = React.useState<Brand>();
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
@@ -40,9 +44,22 @@ function DashboardContent() {
     brandService.getAll().then((data: Brand[]) => {
       setBrands(data);
     });
+    modelService.getAll().then((data: Model[]) => {
+      setModels(data);
+    });
   }, []);
 
-  console.log("brands", brands);
+  const handleSelectBrand = (brand: Brand) => {
+    setSelectedBrand(brand);
+  };
+
+  React.useEffect(() => {
+    if (selectedBrand) {
+      modelService.getByBrand(selectedBrand.id).then((data: Model[]) => {
+        setModels(data);
+      });
+    }
+  }, [selectedBrand]);
 
   return (
     <ThemeProvider theme={mdTheme}>
@@ -73,7 +90,7 @@ function DashboardContent() {
               noWrap
               sx={{ flexGrow: 1 }}
             >
-              Dashboard
+              Car Shop Admin
             </Typography>
             <IconButton color="inherit">
               <Badge badgeContent={4} color="secondary">
@@ -97,7 +114,11 @@ function DashboardContent() {
           </Toolbar>
           <Divider />
           <List component="nav">
-            {mainListItems}
+            <MainListItems
+              brands={brands}
+              selected={selectedBrand && selectedBrand.id}
+              onSelect={handleSelectBrand}
+            />
             <Divider sx={{ my: 1 }} />
           </List>
         </Drawer>
@@ -115,38 +136,13 @@ function DashboardContent() {
         >
           <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Grid container spacing={3}>
-              {/* Chart */}
-              <Grid item xs={12} md={8} lg={9}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: "flex",
-                    flexDirection: "column",
-                    height: 240,
-                  }}
-                >
-                  <Chart />
-                </Paper>
-              </Grid>
-              {/* Recent Deposits */}
-              <Grid item xs={12} md={4} lg={3}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: "flex",
-                    flexDirection: "column",
-                    height: 240,
-                  }}
-                >
-                  <Deposits />
-                </Paper>
-              </Grid>
-              {/* Recent Orders */}
+            <Grid container spacing={1}>
               <Grid item xs={12}>
-                <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                  <Orders />
-                </Paper>
+                <DataTable
+                  brand={selectedBrand}
+                  models={models}
+                  title={selectedBrand?.name}
+                />
               </Grid>
             </Grid>
           </Container>

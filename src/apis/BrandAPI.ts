@@ -1,14 +1,17 @@
 import { ApiEndpoints } from "./config/apiEndpoints";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { Brand } from "../types/Brand";
 import { API } from "./../types/API";
 
 export default class BrandAPI implements API<Brand> {
+  add(data: Brand): Promise<Brand> {
+    throw new Error("Method not implemented.");
+  }
   getAll(): Promise<Brand[]> {
     return new Promise<Brand[]>((resolve, reject) => {
       axios
         .get(ApiEndpoints.brand)
-        .then((response: any) => {
+        .then((response: AxiosResponse<any, any>) => {
           return resolve(response.data);
         })
         .catch((error) => {
@@ -20,7 +23,7 @@ export default class BrandAPI implements API<Brand> {
     return new Promise<Brand>((resolve, reject) => {
       axios
         .get(ApiEndpoints.brand + "/" + id)
-        .then((response: any) => {
+        .then((response: AxiosResponse<any, any>) => {
           return resolve(response.data);
         })
         .catch((error) => {
@@ -32,7 +35,7 @@ export default class BrandAPI implements API<Brand> {
     return new Promise<boolean>((resolve, reject) => {
       axios
         .put(ApiEndpoints.brand + "/" + data.id, data)
-        .then((response: any) => {
+        .then((response: AxiosResponse<any, any>) => {
           return resolve(response.data);
         })
         .catch((error) => {
@@ -44,7 +47,7 @@ export default class BrandAPI implements API<Brand> {
     return new Promise<boolean>((resolve, reject) => {
       axios
         .delete(ApiEndpoints.brand + "/" + id)
-        .then((response: any) => {
+        .then((response: AxiosResponse<any, any>) => {
           return resolve(response.data);
         })
         .catch((error) => {

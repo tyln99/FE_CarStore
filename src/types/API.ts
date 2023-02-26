@@ -3,4 +3,5 @@ export type API<T> = {
   getById(id: number): Promise<T>;
   update(data: T): Promise<boolean>;
   delete(id: number): Promise<boolean>;
+  add(data: T): Promise<T>;
 };

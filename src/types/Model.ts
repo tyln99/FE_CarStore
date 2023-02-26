@@ -1,3 +1,5 @@
+import { Brand } from "./Brand";
+
 export type Model = {
   id: number;
   description: string;
@@ -5,7 +7,8 @@ export type Model = {
   name: string;
   price: number;
   status: number;
-  releaseDate: Date;
+  releaseDate: string;
+  brand: Brand;
   updatedAt: Date;
   createdAt: Date;
 };
