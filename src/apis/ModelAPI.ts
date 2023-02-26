@@ -40,6 +40,18 @@ export default class ModelAPI implements API<Model> {
         });
     });
   }
+  searchByName(name: string): Promise<Model[]> {
+    return new Promise<Model[]>((resolve, reject) => {
+      axios
+        .get(ApiEndpoints.model + "/searchbyname", { params: { name } })
+        .then((response: AxiosResponse<any, any>) => {
+          return resolve(response.data);
+        })
+        .catch((error) => {
+          return reject(error);
+        });
+    });
+  }
   update(data: Model): Promise<Model> {
     return new Promise<Model>((resolve, reject) => {
       axios

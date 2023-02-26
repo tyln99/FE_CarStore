@@ -18,6 +18,7 @@ import CustomizedDialogs from "../CustomizedDialogs";
 import ModelForm from "../Forms/ModelForm";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import { SearchBar } from "../SearchBar";
 
 const rows = [
   { id: 1, lastName: "Snow", firstName: "Jon", age: 35 },
@@ -180,6 +181,18 @@ export default function DataTable({ title, brand, models }: DataTableProps) {
     setOpenDelete(false);
   };
 
+  const handleOnSearchModel = (keyword: string) => {
+    modelService
+      .searchByName(keyword)
+      .then((response) => {
+        setModelsList(response);
+        onCloseDeleteModel();
+      })
+      .catch((reason) => {
+        console.log(reason);
+      });
+  };
+
   return (
     <div style={{ height: 400, width: "100%" }}>
       <div style={{ display: "flex", marginBottom: "10px" }}>
@@ -193,7 +206,13 @@ export default function DataTable({ title, brand, models }: DataTableProps) {
           {title ? <>{title}'s models</> : "All models"}
         </Typography>
         <>
-          <Button variant="contained" onClick={onOpenAddModel}>
+          <SearchBar onSearch={handleOnSearchModel} />
+
+          <Button
+            sx={{ ml: "10px" }}
+            variant="contained"
+            onClick={onOpenAddModel}
+          >
             Add
           </Button>
         </>
