@@ -28,14 +28,19 @@ import { Drawer } from "./Drawer";
 import { Brand } from "../../types/Brand";
 import { Model } from "../../types/Model";
 import DataTable from "../DataTable";
+import CustomizedDialogs from "../CustomizedDialogs";
+import BrandForm from "../Forms/BrandForm";
+import { format } from "date-fns";
 
 const mdTheme = createTheme();
 
 function DashboardContent() {
   const [brands, setBrands] = React.useState<Brand[]>([]);
-  const [models, setModels] = React.useState<Model[]>([]);
+  const [models, setModels] = React.useState<Model[]>();
   const [selectedBrand, setSelectedBrand] = React.useState<Brand>();
   const [open, setOpen] = React.useState(true);
+  const [openAddBrand, setOpenAddBrand] = React.useState(false);
+  const [brandData, setBrandData] = React.useState<Brand>({} as Brand);
   const toggleDrawer = () => {
     setOpen(!open);
   };
@@ -44,13 +49,14 @@ function DashboardContent() {
     brandService.getAll().then((data: Brand[]) => {
       setBrands(data);
     });
-    modelService.getAll().then((data: Model[]) => {
-      setModels(data);
-    });
   }, []);
 
   const handleSelectBrand = (brand: Brand) => {
     setSelectedBrand(brand);
+  };
+
+  const handleOpenAddBrand = () => {
+    setOpenAddBrand(true);
   };
 
   React.useEffect(() => {
@@ -60,6 +66,31 @@ function DashboardContent() {
       });
     }
   }, [selectedBrand]);
+
+  const handleDataChange = (field: string, value: string) => {
+    console.log(brandData);
+    setBrandData({
+      ...brandData,
+      [field]: value,
+    });
+  };
+
+  const closeAddBrand = () => {
+    setOpenAddBrand(false);
+  };
+
+  const handleSubmitModel = () => {
+    if (brandData) {
+      brandData.releaseDate = format(
+        new Date(brandData.releaseDate),
+        "yyyy-MM-dd HH:mm:ss"
+      );
+      brandService.add(brandData).then((response: Brand) => {
+        closeAddBrand();
+        setBrands([...brands, response]);
+      });
+    }
+  };
 
   return (
     <ThemeProvider theme={mdTheme}>
@@ -118,6 +149,7 @@ function DashboardContent() {
               brands={brands}
               selected={selectedBrand && selectedBrand.id}
               onSelect={handleSelectBrand}
+              handleOpenAddBrand={handleOpenAddBrand}
             />
             <Divider sx={{ my: 1 }} />
           </List>
@@ -138,16 +170,26 @@ function DashboardContent() {
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={1}>
               <Grid item xs={12}>
-                <DataTable
-                  brand={selectedBrand}
-                  models={models}
-                  title={selectedBrand?.name}
-                />
+                {models && (
+                  <DataTable
+                    brand={selectedBrand}
+                    models={models}
+                    title={selectedBrand?.name}
+                  />
+                )}
               </Grid>
             </Grid>
           </Container>
         </Box>
       </Box>
+      <CustomizedDialogs
+        title="Add brand"
+        open={openAddBrand}
+        onClose={closeAddBrand}
+        onSubmit={handleSubmitModel}
+      >
+        <BrandForm data={brandData} handleDataChange={handleDataChange} />
+      </CustomizedDialogs>
     </ThemeProvider>
   );
 }

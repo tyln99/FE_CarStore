@@ -15,12 +15,14 @@ import { Avatar } from "@mui/material";
 type MainListItemsProps = {
   brands: Brand[];
   selected?: number;
+  handleOpenAddBrand: () => void;
   onSelect: (brand: Brand) => void;
 };
 
 export const MainListItems = ({
   selected,
   brands,
+  handleOpenAddBrand,
   onSelect,
 }: MainListItemsProps): JSX.Element => {
   // const urlSearchParams = new URLSearchParams(window.location.search);
@@ -55,6 +57,9 @@ export const MainListItems = ({
           </ListItemButton>
         );
       })}
+      <ListItemButton onClick={() => handleOpenAddBrand()}>
+        <ListItemText primary="Add new" />
+      </ListItemButton>
     </React.Fragment>
   );
 };

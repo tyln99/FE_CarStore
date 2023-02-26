@@ -40,8 +40,8 @@ export default class ModelAPI implements API<Model> {
         });
     });
   }
-  update(data: Model): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
+  update(data: Model): Promise<Model> {
+    return new Promise<Model>((resolve, reject) => {
       axios
         .put(ApiEndpoints.model + "/" + data.id, data)
         .then((response: AxiosResponse<any, any>) => {

@@ -1,8 +1,10 @@
+import { DeleteOutline } from "@mui/icons-material";
 import { Button, IconButton, Typography } from "@mui/material";
 import {
   DataGrid,
   GridCallbackDetails,
   GridColDef,
+  GridRowParams,
   GridSelectionModel,
   GridValueGetterParams,
 } from "@mui/x-data-grid";
@@ -14,31 +16,8 @@ import { Brand } from "../../types/Brand";
 import { Model } from "../../types/Model";
 import CustomizedDialogs from "../CustomizedDialogs";
 import ModelForm from "../Forms/ModelForm";
-
-const columns: GridColDef[] = [
-  { field: "id", headerName: "ID", width: 100 },
-  { field: "name", headerName: "Name", width: 150, sortable: false },
-  {
-    field: "description",
-    headerName: "Description",
-    width: 150,
-    sortable: false,
-  },
-  {
-    field: "price",
-    headerName: "Price ($)",
-    type: "number",
-    width: 150,
-    sortable: true,
-  },
-  {
-    field: "releaseDate",
-    headerName: "Release date",
-    width: 300,
-    type: "date",
-    sortable: false,
-  },
-];
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 const rows = [
   { id: 1, lastName: "Snow", firstName: "Jon", age: 35 },
@@ -64,6 +43,65 @@ export default function DataTable({ title, brand, models }: DataTableProps) {
   const [modalTitle, setModalTitle] = React.useState<string>("");
   const [modelData, setModelData] = React.useState<Model>({} as Model);
   const [selectedModels, setSelectedModels] = React.useState<number[]>([]);
+  const [action, setAction] = React.useState<"update" | "create">("create");
+  const [openDelete, setOpenDelete] = React.useState(false);
+  const [deleteId, setDeleteId] = React.useState<number>();
+
+  const columns: GridColDef[] = [
+    { field: "id", headerName: "ID", width: 50 },
+    { field: "name", headerName: "Name", width: 150, sortable: false },
+    {
+      field: "description",
+      headerName: "Description",
+      width: 150,
+      sortable: false,
+    },
+    {
+      field: "price",
+      headerName: "Price ($)",
+      type: "number",
+      width: 150,
+      sortable: true,
+    },
+    {
+      field: "releaseDate",
+      headerName: "Release date",
+      width: 250,
+      type: "date",
+      sortable: false,
+    },
+    {
+      width: 250,
+      field: "action",
+      headerName: "Action",
+      sortable: false,
+      renderCell: (params) => {
+        const model = { ...params.row } as Model;
+        const onClickEdit = () => {
+          setAction("update");
+          model.releaseDate = format(new Date(model.releaseDate), "yyyy-MM-dd");
+          setModelData(model);
+          onOpenAddModel();
+        };
+
+        const onClickDelete = () => {
+          setOpenDelete(true);
+          setDeleteId(model.id);
+        };
+
+        return (
+          <>
+            <Button onClick={onClickEdit}>
+              <EditIcon />
+            </Button>
+            <Button onClick={onClickDelete}>
+              <DeleteIcon />
+            </Button>
+          </>
+        );
+      },
+    },
+  ];
 
   React.useEffect(() => {
     if (models) {
@@ -96,23 +134,55 @@ export default function DataTable({ title, brand, models }: DataTableProps) {
       if (brand) {
         modelData.brand = brand;
       }
-      modelService.add(modelData).then((response: Model) => {
-        onClose();
-        setModelsList([...modelsList, response]);
-        setModelData({} as Model);
-      });
+      if (action === "create") {
+        modelService.add(modelData).then((response: Model) => {
+          onClose();
+          setModelsList([...modelsList, response]);
+          setModelData({} as Model);
+        });
+      } else if (action === "update") {
+        modelService.update(modelData).then((response: Model) => {
+          onClose();
+
+          response.releaseDate = format(
+            new Date(response.releaseDate),
+            "yyyy-MM-dd HH:mm:ss"
+          );
+          const newModelsList = modelsList.map((model) =>
+            model.id === response.id ? response : model
+          );
+          console.log(newModelsList);
+          setModelsList(newModelsList);
+          setModelData({} as Model);
+        });
+      }
     }
   };
 
-  const onOpenDeleteModel = () => {
-    modelService
-      .delete(selectedModels[0])
-      .then((response) => console.log(response));
+  const handleDeleteModel = () => {
+    deleteId &&
+      modelService
+        .delete(deleteId)
+        .then((response) => {
+          const newListModels = modelsList.filter(
+            (model) => model.id !== deleteId
+          );
+          setModelsList(newListModels);
+          onCloseDeleteModel();
+        })
+        .catch((reason) => {
+          console.log(reason);
+        });
+    return true;
+  };
+
+  const onCloseDeleteModel = () => {
+    setOpenDelete(false);
   };
 
   return (
     <div style={{ height: 400, width: "100%" }}>
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", marginBottom: "10px" }}>
         <Typography
           component="h1"
           variant="h6"
@@ -123,9 +193,6 @@ export default function DataTable({ title, brand, models }: DataTableProps) {
           {title ? <>{title}'s models</> : "All models"}
         </Typography>
         <>
-          <Button variant="contained" onClick={onOpenDeleteModel}>
-            Delete
-          </Button>
           <Button variant="contained" onClick={onOpenAddModel}>
             Add
           </Button>
@@ -139,16 +206,27 @@ export default function DataTable({ title, brand, models }: DataTableProps) {
       >
         <ModelForm data={modelData} handleDataChange={handleDataChange} />
       </CustomizedDialogs>
+      <CustomizedDialogs
+        title="Delete model"
+        open={openDelete}
+        onClose={onCloseDeleteModel}
+        onSubmit={handleDeleteModel}
+        okText="Delete"
+      >
+        <p>
+          Are you sure to delete model <strong>{deleteId}</strong>
+        </p>
+      </CustomizedDialogs>
       <DataGrid
-        onSelectionModelChange={(
-          selectionModel: GridSelectionModel,
-          details: GridCallbackDetails<any>
-        ) => setSelectedModels(selectionModel as number[])}
+        // onSelectionModelChange={(
+        //   selectionModel: GridSelectionModel,
+        //   details: GridCallbackDetails<any>
+        // ) => setSelectedModels(selectionModel as number[])}
         rows={modelsList}
         columns={columns}
         pageSize={5}
         rowsPerPageOptions={[5]}
-        checkboxSelection
+        // checkboxSelection
       />
     </div>
   );

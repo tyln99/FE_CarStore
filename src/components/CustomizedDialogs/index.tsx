@@ -52,6 +52,7 @@ type CustomizedDialogsProps = {
   open: boolean;
   children: JSX.Element;
   title: string;
+  okText?: string;
   onClose: () => void;
   onSubmit: () => void;
 };
@@ -60,6 +61,7 @@ export default function CustomizedDialogs({
   open,
   title,
   children,
+  okText,
   onClose,
   onSubmit,
 }: CustomizedDialogsProps) {
@@ -79,7 +81,7 @@ export default function CustomizedDialogs({
       <DialogContent dividers>{children}</DialogContent>
       <DialogActions>
         <Button autoFocus onClick={onSubmit}>
-          Save changes
+          {okText ? okText : "Save changes"}
         </Button>
       </DialogActions>
     </BootstrapDialog>
